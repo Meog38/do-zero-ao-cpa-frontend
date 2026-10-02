@@ -57,7 +57,7 @@ export type ApiAnswer = {
 type ApiErrorBody = { code?: string; message?: string };
 
 // Base da API fixa no código; VITE_API_BASE_URL, se definida no build, tem prioridade.
-const defaultBaseUrl = "https://3-221-155-116.sslip.io";
+const defaultBaseUrl = "https://brainvest-api.onrender.com";
 const configuredBaseUrl = (import.meta.env["VITE_API_BASE_URL"]?.trim() || defaultBaseUrl).replace(/\/+$/, "");
 
 export const isApiConfigured = true;
