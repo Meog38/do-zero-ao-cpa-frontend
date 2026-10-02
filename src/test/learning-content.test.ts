@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { LEARNING_LEVELS } from "@/lib/learning-content";
 
 describe("learning path", () => {
-  it("builds five levels with five questions in every mission", () => {
+  it("builds five levels with expanded missions", () => {
     expect(LEARNING_LEVELS).toHaveLength(5);
-    expect(LEARNING_LEVELS.map((level) => level.questions.length)).toEqual([5, 5, 5, 5, 5]);
+    expect(LEARNING_LEVELS.map((level) => level.questions.length)).toEqual([8, 8, 8, 8, 12]);
     expect(LEARNING_LEVELS.every((level) => level.missionSummary.length > 80)).toBe(true);
   });
 
@@ -33,7 +33,7 @@ describe("learning path", () => {
     expect(LEARNING_LEVELS[4]?.title).toBe("Desafio CPA");
     expect(
       LEARNING_LEVELS[4]?.questions.every((question) =>
-        question.context.startsWith("Caso integrado"),
+        question.context.startsWith("Caso"),
       ),
     ).toBe(true);
   });

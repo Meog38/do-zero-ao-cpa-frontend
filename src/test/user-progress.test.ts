@@ -32,7 +32,7 @@ describe("local user progress", () => {
     expect(restored.xp).toBe(860);
     expect(restored.lives).toBe(3);
     expect(restored.completedMissionIds).toEqual([1]);
-    expect(restored.completedQuestionCounts).toEqual({ 1: 5 });
+    expect(restored.completedQuestionCounts).toEqual({ 1: 8 });
     expect(restored.rewardedQuestionIds).toEqual(["l1-q1"]);
     expect(restored.currentQuestionIndex).toBe(3);
   });
