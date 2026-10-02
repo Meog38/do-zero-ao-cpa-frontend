@@ -52,7 +52,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [nome, setNome] = useState("");
   const [objetivo, setObjetivo] = useState("");
-  const [trilha, setTrilha] = useState(TRILHAS[1]);
+  const [trilha, setTrilha] = useState(TRILHAS[1]!);
   const [resposta, setResposta] = useState<string | null>(null);
   const [xp, setXp] = useState(320);
   const [gemas, setGemas] = useState(120);
@@ -131,7 +131,7 @@ function App() {
                     <h2 className="mb-4 font-display text-xl font-bold text-ink">Continue de onde parou</h2>
                     <div className="space-y-4">
                       <LessonCard tone="coral" emoji="💳" sub="Trilha 2 · Lição 4 de 5" title="Pagamento mínimo e crédito rotativo"
-                        onClick={() => { setTrilha(TRILHAS[1]); go("desafio"); }} cta="Começar +50 XP" />
+                        onClick={() => { setTrilha(TRILHAS[1]!); go("desafio"); }} cta="Começar +50 XP" />
                       <div className="relative">
                         <div className="relative rounded-2xl border-2 border-line bg-cream p-5 chunky shadow-line">
                           <div className="flex items-start justify-between opacity-50">
