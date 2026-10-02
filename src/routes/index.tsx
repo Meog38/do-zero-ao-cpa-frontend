@@ -105,7 +105,7 @@ function App() {
               </div>
               <div className="mt-8 space-y-3">
                 {[["🧾", "Organizar meu dinheiro"], ["🛡️", "Evitar dívidas"], ["🌱", "Aprender a investir"]].map(([e, o]) => (
-                  <button key={o} onClick={() => setObjetivo(o)}
+                  <button key={o} onClick={() => setObjetivo(o!)}
                     className={`chunky-sm flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left font-bold transition-all ${objetivo === o ? "border-mint bg-mint-soft text-mint shadow-mint/30" : "border-line bg-milk text-ink shadow-line"}`}>
                     <span className="text-2xl">{e}</span>{o}
                   </button>
