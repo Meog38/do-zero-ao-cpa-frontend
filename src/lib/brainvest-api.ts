@@ -16,6 +16,7 @@ export type ApiLevel = {
   description: string;
   missionTitle: string;
   missionBrief: string;
+  missionSummary?: string;
   questions: ApiQuestion[];
 };
 
@@ -138,6 +139,13 @@ export function getCurrentAccount() {
 
 export function logoutAccount() {
   return request<void>("/api/v1/auth/logout", { method: "POST" });
+}
+
+export function changeAccountPassword(currentPassword: string, newPassword: string) {
+  return request<void>("/api/v1/auth/password", {
+    method: "PATCH",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
 }
 
 export function getLearnerProgress(learnerId: string) {

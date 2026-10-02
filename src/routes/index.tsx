@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import mascot from "@/assets/mascot.png";
 import { LEARNING_LEVELS, STARTER_HEARTS, type LearningLevel, type LearningQuestion } from "@/lib/learning-content";
 import { clearProgress, EMPTY_PROGRESS, getMissionGemReward, getQuestionXpReward, readProgress, writeProgress, type UserProgress } from "@/lib/user-progress";
-import { createLearner, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
+import { changeAccountPassword, createLearner, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -96,6 +96,9 @@ function App() {
   const [apiError, setApiError] = useState("");
   const [authMode, setAuthMode] = useState<"register" | "login">("register");
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [accountMessage, setAccountMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
   const [respostaCorreta, setRespostaCorreta] = useState<boolean | null>(null);
@@ -404,6 +407,31 @@ function App() {
     go("splash");
   };
 
+  const alterarSenha = async () => {
+    if (!authToken || currentPassword.length < 8 || newPassword.length < 8) return;
+    setApiError("");
+    setAccountMessage("");
+    setApiStatus("connecting");
+    try {
+      await changeAccountPassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setAccountMessage("Senha alterada com sucesso.");
+      setApiStatus("online");
+    } catch (error) {
+      setApiStatus(authToken ? "online" : "offline");
+      setApiError(error instanceof Error ? error.message : "Nao foi possivel alterar a senha.");
+    }
+  };
+
+  const syncLabel = authToken
+    ? apiStatus === "online"
+      ? "Sincronizado com sua conta"
+      : apiStatus === "connecting"
+        ? "Sincronizando progresso..."
+        : "Conta salva localmente; aguardando reconexao"
+    : "Progresso salvo apenas neste dispositivo";
+
   return (
     <div className="flex min-h-screen w-full min-w-0 justify-center overflow-x-hidden bg-cream px-3 py-6">
       <div className="flex w-full min-w-0 max-w-[420px] flex-col overflow-hidden rounded-[40px] border-x-2 border-t-2 border-line bg-milk chunky shadow-line" style={{ minHeight: 780 }}>
@@ -480,6 +508,11 @@ function App() {
                 <div><h2 className="font-display text-2xl font-bold text-ink">Seu perfil</h2><p className="text-xs text-bark">{authToken ? "Progresso salvo na sua conta" : "Progresso local ainda sem conta"}</p></div>
               </div>
               {email && <div className="mt-5 rounded-2xl border-2 border-line bg-cream p-4"><p className="text-xs font-extrabold uppercase tracking-wider text-bark">E-mail</p><p className="mt-1 break-words text-sm font-bold text-ink">{email}</p></div>}
+              <div className="mt-3 rounded-2xl border-2 border-line bg-milk p-4">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-bark">Status</p>
+                <p className="mt-1 text-sm font-bold text-ink">{syncLabel}</p>
+                {authToken && <p className="mt-2 text-xs leading-relaxed text-bark">Se esquecer a senha, peca ao responsavel tecnico para fazer o reset manual no banco. O app ainda nao envia e-mail automatico.</p>}
+              </div>
               <label className="mt-8 text-xs font-extrabold uppercase tracking-wider text-bark" htmlFor="profile-name">Como quer ser chamado?</label>
               <input id="profile-name" maxLength={60} value={nome} onBlur={() => {
                 if (apiStatus === "online" && backendLearnerId && objetivo) {
@@ -499,6 +532,20 @@ function App() {
                 <div className="rounded-2xl bg-butter-soft p-4 text-center"><p className="text-xs font-bold uppercase text-bark">XP</p><p className="font-display text-2xl font-bold text-ink">{xp}</p></div>
                 <div className="rounded-2xl bg-mint-soft p-4 text-center"><p className="text-xs font-bold uppercase text-bark">Missões</p><p className="font-display text-2xl font-bold text-ink">{missoesConcluidas.length}/{learningLevels.length}</p></div>
               </div>
+              {authToken && (
+                <div className="mt-4 rounded-2xl border-2 border-line bg-cream p-4">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-bark">Alterar senha</p>
+                  <input aria-label="Senha atual" autoComplete="current-password" type="password" placeholder="Senha atual" value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    className="mt-3 w-full rounded-2xl border-2 border-line bg-milk px-4 py-3 text-sm font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                  <input aria-label="Nova senha" autoComplete="new-password" type="password" placeholder="Nova senha, minimo 8 caracteres" value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    className="mt-3 w-full rounded-2xl border-2 border-line bg-milk px-4 py-3 text-sm font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                  <button disabled={currentPassword.length < 8 || newPassword.length < 8 || apiStatus === "connecting"} onClick={alterarSenha}
+                    className="mt-3 w-full rounded-xl bg-mint px-4 py-3 text-xs font-extrabold uppercase text-milk disabled:opacity-40">{apiStatus === "connecting" ? "Salvando..." : "Salvar nova senha"}</button>
+                </div>
+              )}
+              {accountMessage && <p role="status" className="mt-4 rounded-xl bg-mint-soft p-3 text-sm font-semibold text-ink">{accountMessage}</p>}
               {apiError && <p role="alert" className="mt-4 rounded-xl bg-coral-soft p-3 text-sm font-semibold text-ink">{apiError}</p>}
               <div className="mt-auto space-y-3 pb-8 pt-8">
                 <Chunky tone="milk" onClick={sairDaConta}>{authToken ? "Sair da conta" : "Limpar este dispositivo"}</Chunky>
@@ -668,7 +715,15 @@ function App() {
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-bark">Conceito-chave · {perguntaAtual.concept}</p>
                   <p className="mt-1 text-sm leading-relaxed text-ink">{feedback}</p>
                 </div>
-                {acertou && missaoConcluida && <div className="mt-3 rounded-2xl bg-butter-soft p-4 text-sm font-bold text-ink">{gemasDaResposta ? `🏅 +${gemasDaResposta} gemas · Próximo nível desbloqueado` : "Revisão concluída · recompensas já resgatadas"}</div>}
+                {acertou && missaoConcluida && (
+                  <div className="mt-3 space-y-3">
+                    <div className="rounded-2xl border-2 border-line bg-milk p-4">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-bark">Resumo da missao</p>
+                      <p className="mt-1 text-sm leading-relaxed text-ink">{trilha.missionSummary}</p>
+                    </div>
+                    <div className="rounded-2xl bg-butter-soft p-4 text-sm font-bold text-ink">{gemasDaResposta ? `+${gemasDaResposta} gemas - Proximo nivel desbloqueado` : "Revisao concluida - recompensas ja resgatadas"}</div>
+                  </div>
+                )}
                 <div className="mt-auto space-y-3 pb-8 pt-8">
                   <Chunky onClick={continuarMissao}>{!acertou ? vidas === 0 ? "Reiniciar missão" : "Tentar de novo" : missaoConcluida ? "Ver próxima etapa" : "Continuar missão"}</Chunky>
                   <Chunky tone="milk" onClick={() => { setResposta(null); setPerguntaAtual(null); go("atividades"); }}>Ver mapa da missão</Chunky>

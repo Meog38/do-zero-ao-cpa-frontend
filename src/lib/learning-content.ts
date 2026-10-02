@@ -21,6 +21,7 @@ export type LearningLevel = {
   description: string;
   missionTitle: string;
   missionBrief: string;
+  missionSummary: string;
   questions: LearningQuestion[];
 };
 
@@ -34,6 +35,7 @@ const LEARNING_LEVELS_SOURCE: LearningLevel[] = [
     missionTitle: "Missão: o primeiro salário de Lucas",
     missionBrief:
       "Lucas tem 19 anos, recebe R$ 2.400 líquidos e gasta R$ 1.700 por mês. Ele quer se organizar sem deixar de aproveitar a vida.",
+    missionSummary: "Lucas fechou o mes entendendo renda, gastos essenciais, desejos e juros do cartao. A ponte com CPA e clara: antes de produto financeiro, vem diagnostico, orcamento e decisao adequada ao objetivo.",
     questions: [
       {
         id: "l1-q1",
@@ -129,6 +131,7 @@ const LEARNING_LEVELS_SOURCE: LearningLevel[] = [
     missionTitle: "Missão: a viagem e a reserva de Marina",
     missionBrief:
       "Marina está guardando dinheiro para uma viagem daqui a dois meses e também quer montar uma reserva para imprevistos.",
+    missionSummary: "Marina separou dinheiro de curto prazo da reserva e percebeu que liquidez, prazo e inflacao mudam a escolha. Essa e a base para analisar adequacao antes de comparar rentabilidade.",
     questions: [
       {
         id: "l2-q1",
@@ -226,6 +229,7 @@ const LEARNING_LEVELS_SOURCE: LearningLevel[] = [
     missionTitle: "Missão: escolher sem cair no nome bonito",
     missionBrief:
       "Depois de organizar a reserva, Pedro compara produtos de investimento. Cada escolha precisa combinar com o funcionamento e o prazo do produto.",
+    missionSummary: "Pedro saiu do nome do produto e passou a olhar emissor, regra de remuneracao, cotas, prazo e risco. E esse olhar que prepara para a linguagem de investimentos da CPA.",
     questions: [
       {
         id: "l3-q1",
@@ -322,6 +326,7 @@ const LEARNING_LEVELS_SOURCE: LearningLevel[] = [
     missionTitle: "Missão: o plano de investimento de Bia",
     missionBrief:
       "Bia tem objetivos com prazos diferentes e está conhecendo alternativas. Seu desafio é avaliar adequação, não perseguir a maior taxa isoladamente.",
+    missionSummary: "Bia aprendeu que risco, retorno, diversificacao, perfil e horizonte precisam conversar entre si. A boa decisao nao e a mais chamativa: e a que combina com a pessoa e com o prazo.",
     questions: [
       {
         id: "l4-q1",
@@ -420,6 +425,7 @@ const LEARNING_LEVELS_SOURCE: LearningLevel[] = [
     missionTitle: "Missão: você é assessor por cinco minutos",
     missionBrief:
       "Rafael tem R$ 10.000 para uma reserva e um objetivo de longo prazo. Ele demonstra baixa tolerância a perdas e pergunta sobre CDBs, fundos e títulos públicos.",
+    missionSummary: "Rafael integrou o caso final: separou reserva e longo prazo, checou liquidez, risco de credito, custos, documentos do fundo e suitability. Essa e a logica central para chegar mais forte ao CPA.",
     questions: [
       {
         id: "l5-q1",
