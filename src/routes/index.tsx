@@ -374,7 +374,8 @@ function App() {
   };
 
   const apagarPerfil = async () => {
-    if (!window.confirm("Apagar o perfil e todo o progresso salvo neste dispositivo e no backend?")) return;
+    const confirmation = window.prompt("Para apagar sua conta e todo o progresso salvo, digite APAGAR.");
+    if (confirmation !== "APAGAR") return;
     if (backendLearnerId) {
       try {
         await deleteLearnerProfile(backendLearnerId);
@@ -414,7 +415,7 @@ function App() {
               <p className="max-w-[28ch] text-bark">Do seu primeiro salário aos conceitos de investimento da CPA.</p>
               <div className="mt-6 w-full min-w-0 space-y-3">
                 <Chunky onClick={() => go("auth")}>Começar agora</Chunky>
-                {progressLoaded && nome.trim() && <Chunky tone="milk" onClick={() => go("home")}>Continuar neste dispositivo</Chunky>}
+                {progressLoaded && nome.trim() && <Chunky tone="milk" onClick={() => go("home")}>{authToken ? "Continuar na minha conta" : "Continuar progresso local"}</Chunky>}
               </div>
             </div>
           )}
@@ -476,8 +477,9 @@ function App() {
             <div className="flex flex-1 flex-col px-6 pt-8">
               <div className="flex items-center gap-4">
                 <img src={mascot} alt="Mascote atual da Brainvest" width={816} height={816} className="size-20" />
-                <div><h2 className="font-display text-2xl font-bold text-ink">Seu perfil</h2><p className="text-xs text-bark">Progresso salvo neste dispositivo</p></div>
+                <div><h2 className="font-display text-2xl font-bold text-ink">Seu perfil</h2><p className="text-xs text-bark">{authToken ? "Progresso salvo na sua conta" : "Progresso local ainda sem conta"}</p></div>
               </div>
+              {email && <div className="mt-5 rounded-2xl border-2 border-line bg-cream p-4"><p className="text-xs font-extrabold uppercase tracking-wider text-bark">E-mail</p><p className="mt-1 break-words text-sm font-bold text-ink">{email}</p></div>}
               <label className="mt-8 text-xs font-extrabold uppercase tracking-wider text-bark" htmlFor="profile-name">Como quer ser chamado?</label>
               <input id="profile-name" maxLength={60} value={nome} onBlur={() => {
                 if (apiStatus === "online" && backendLearnerId && objetivo) {
@@ -510,8 +512,8 @@ function App() {
             <>
               <StatsBar xp={xp} gemas={gemas} sequencia={sequencia} />
               <div className="flex-1 px-6 py-4">
-                {apiStatus === "offline" && <div role="status" className="mb-4 rounded-xl border border-coral/40 bg-coral-soft px-3 py-2 text-xs font-semibold text-ink">API desconectada; progresso neste dispositivo. {apiError}</div>}
-                {apiStatus === "connecting" && <div role="status" className="mb-4 rounded-xl border border-butter bg-butter-soft px-3 py-2 text-xs font-semibold text-ink">Conectando ao backend...</div>}
+                {apiStatus === "offline" && <div role="status" className="mb-4 rounded-xl border border-coral/40 bg-coral-soft px-3 py-2 text-xs font-semibold text-ink">Servidor indisponível no momento. Se o Render estiver acordando, tente recarregar em alguns segundos. {apiError}</div>}
+                {apiStatus === "connecting" && <div role="status" className="mb-4 rounded-xl border border-butter bg-butter-soft px-3 py-2 text-xs font-semibold text-ink">Conectando ao servidor...</div>}
                 {screen === "home" ? (
                   <>
                     <div className="mb-6 flex items-center gap-4">
