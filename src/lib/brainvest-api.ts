@@ -56,9 +56,11 @@ export type ApiAnswer = {
 
 type ApiErrorBody = { code?: string; message?: string };
 
-const configuredBaseUrl = import.meta.env["VITE_API_BASE_URL"]?.trim().replace(/\/+$/, "");
+// Base da API fixa no código; VITE_API_BASE_URL, se definida no build, tem prioridade.
+const defaultBaseUrl = "https://3-221-155-116.sslip.io";
+const configuredBaseUrl = (import.meta.env["VITE_API_BASE_URL"]?.trim() || defaultBaseUrl).replace(/\/+$/, "");
 
-export const isApiConfigured = Boolean(configuredBaseUrl);
+export const isApiConfigured = true;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!configuredBaseUrl) throw new Error("VITE_API_BASE_URL is not configured.");
