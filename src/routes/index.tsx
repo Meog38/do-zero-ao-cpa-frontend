@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import mascot from "@/assets/mascot.png";
 import { LEARNING_LEVELS, STARTER_HEARTS, type LearningLevel, type LearningQuestion } from "@/lib/learning-content";
 import { clearProgress, EMPTY_PROGRESS, getMissionGemReward, getQuestionXpReward, readProgress, writeProgress, type UserProgress } from "@/lib/user-progress";
-import { createLearner, deleteLearnerProfile, getCurriculum, getLearnerProgress, isApiConfigured, restartLearnerMission, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
+import { createLearner, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,6 +68,16 @@ function mergeApiProgress(apiProgress: ApiProgress, current: UserProgress): User
   };
 }
 
+function mergeAuth(auth: ApiAuth, current: UserProgress): UserProgress {
+  return {
+    ...mergeApiProgress(auth.progress, current),
+    email: auth.user.email,
+    authToken: auth.token || current.authToken,
+    backendLearnerId: auth.user.learnerId,
+    displayName: auth.user.displayName,
+  };
+}
+
 function Chunky({ onClick, tone = "mint", children, className = "", disabled }: { onClick?: () => void; tone?: Tone | "milk"; children: ReactNode; className?: string; disabled?: boolean }) {
   const t = tone === "milk" ? "bg-milk text-ink border-2 border-line shadow-line" : `${toneCls[tone].card} ${toneCls[tone].shadow}`;
   return (
@@ -84,6 +94,8 @@ function App() {
   const [learningLevels, setLearningLevels] = useState<LearningLevel[]>(LEARNING_LEVELS);
   const [apiStatus, setApiStatus] = useState<"local" | "connecting" | "online" | "offline">(isApiConfigured ? "connecting" : "local");
   const [apiError, setApiError] = useState("");
+  const [authMode, setAuthMode] = useState<"register" | "login">("register");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
   const [respostaCorreta, setRespostaCorreta] = useState<boolean | null>(null);
@@ -94,7 +106,7 @@ function App() {
   const [perguntaAtual, setPerguntaAtual] = useState<LearningQuestion | null>(null);
   const [xpDaResposta, setXpDaResposta] = useState(0);
   const [gemasDaResposta, setGemasDaResposta] = useState(0);
-  const { displayName: nome, objective: objetivo, backendLearnerId, lives: vidas, streak: sequencia, xp, gems: gemas, completedMissionIds: missoesConcluidas, completedQuestionCounts: questoesConcluidas } = progress;
+  const { displayName: nome, objective: objetivo, email, authToken, backendLearnerId, lives: vidas, streak: sequencia, xp, gems: gemas, completedMissionIds: missoesConcluidas, completedQuestionCounts: questoesConcluidas } = progress;
   const nivel = 1 + Math.floor(xp / 500);
   const go = (s: Screen) => setScreen(s);
   const primeiro = nome.trim().split(" ")[0] || "Luísa";
@@ -104,6 +116,7 @@ function App() {
     let cancelled = false;
     const initialize = async () => {
       const saved = readProgress(window.localStorage);
+      setApiAuthToken(saved.authToken);
       setProgress(saved);
       setProgressLoaded(true);
       if (!isApiConfigured) return;
@@ -112,6 +125,13 @@ function App() {
         const curriculum = await getCurriculum();
         if (cancelled) return;
         setLearningLevels(mergeCurriculum(curriculum));
+        if (saved.authToken) {
+          const account = await getCurrentAccount();
+          if (cancelled) return;
+          setProgress((current) => mergeAuth(account, current));
+          setApiStatus("online");
+          return;
+        }
         if (!saved.displayName.trim() || !saved.objective.trim()) {
           setApiStatus("online");
           return;
@@ -173,7 +193,18 @@ function App() {
       setApiStatus("connecting");
       try {
         let learnerId = backendLearnerId;
-        if (learnerId) {
+        if (authToken && learnerId) {
+          await updateLearnerProfile(learnerId, nome.trim(), objetivo);
+        } else if (!authToken) {
+          const auth = await registerAccount(nome.trim(), objetivo, email.trim(), password);
+          setApiAuthToken(auth.token);
+          setProgress((current) => mergeAuth(auth, current));
+          setApiStatus("online");
+          setApiError("");
+          setPassword("");
+          go("home");
+          return;
+        } else if (learnerId) {
           await updateLearnerProfile(learnerId, nome.trim(), objetivo);
         } else {
           learnerId = (await createLearner(nome.trim(), objetivo)).id;
@@ -189,6 +220,23 @@ function App() {
       }
     }
     go("home");
+  };
+
+  const entrarNaConta = async () => {
+    if (!email.trim() || !password) return;
+    setApiStatus("connecting");
+    setApiError("");
+    try {
+      const auth = await loginAccount(email.trim(), password);
+      setApiAuthToken(auth.token);
+      setProgress((current) => mergeAuth(auth, current));
+      setPassword("");
+      setApiStatus("online");
+      go("home");
+    } catch (error) {
+      setApiStatus("offline");
+      setApiError(error instanceof Error ? error.message : "Não foi possível entrar na conta.");
+    }
   };
 
   const selecionarObjetivo = (label: string) => {
@@ -341,6 +389,20 @@ function App() {
     go("splash");
   };
 
+  const sairDaConta = async () => {
+    try {
+      if (authToken) await logoutAccount();
+    } catch {
+      // Logout local ainda deve acontecer se a sessão remota já expirou.
+    }
+    setApiAuthToken(null);
+    clearProgress(window.localStorage);
+    setProgress({ ...EMPTY_PROGRESS });
+    setPassword("");
+    setApiError("");
+    go("splash");
+  };
+
   return (
     <div className="flex min-h-screen w-full min-w-0 justify-center overflow-x-hidden bg-cream px-3 py-6">
       <div className="flex w-full min-w-0 max-w-[420px] flex-col overflow-hidden rounded-[40px] border-x-2 border-t-2 border-line bg-milk chunky shadow-line" style={{ minHeight: 780 }}>
@@ -360,14 +422,33 @@ function App() {
           {screen === "auth" && (
             <div className="flex flex-1 flex-col px-7 pt-10">
               <button onClick={() => go("splash")} className="self-start text-2xl text-bark">←</button>
-              <h2 className="mt-6 font-display text-3xl font-bold text-ink">Como podemos te chamar?</h2>
-              <p className="mt-1 text-sm text-bark">Seu progresso será salvo neste dispositivo.</p>
-              <div className="mt-8 space-y-3">
-                <input aria-label="Seu nome" autoComplete="given-name" maxLength={60} placeholder="Seu nome" value={nome}
-                  onChange={(event) => setProgress((current) => ({ ...current, displayName: event.target.value }))}
-                  className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+              <h2 className="mt-6 font-display text-3xl font-bold text-ink">{authMode === "register" ? "Crie sua conta" : "Entre na sua conta"}</h2>
+              <p className="mt-1 text-sm text-bark">Seu progresso será salvo no banco e acompanha você em outros dispositivos.</p>
+              <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-cream p-1">
+                <button onClick={() => setAuthMode("register")} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "register" ? "bg-mint text-milk" : "text-bark"}`}>Cadastrar</button>
+                <button onClick={() => setAuthMode("login")} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "login" ? "bg-mint text-milk" : "text-bark"}`}>Entrar</button>
               </div>
-              <div className="mt-auto pb-8 pt-8"><Chunky disabled={!nome.trim()} onClick={() => go("objetivo")}>Continuar</Chunky></div>
+              <div className="mt-8 space-y-3">
+                {authMode === "register" && (
+                  <input aria-label="Seu nome" autoComplete="given-name" maxLength={60} placeholder="Seu nome" value={nome}
+                    onChange={(event) => setProgress((current) => ({ ...current, displayName: event.target.value }))}
+                    className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                )}
+                <input aria-label="E-mail" autoComplete="email" inputMode="email" maxLength={254} placeholder="E-mail" value={email}
+                  onChange={(event) => setProgress((current) => ({ ...current, email: event.target.value }))}
+                  className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                <input aria-label="Senha" autoComplete={authMode === "register" ? "new-password" : "current-password"} minLength={8} maxLength={100} type="password" placeholder="Senha, mínimo 8 caracteres" value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                {apiError && <p role="alert" className="rounded-xl bg-coral-soft p-3 text-sm font-semibold text-ink">{apiError}</p>}
+              </div>
+              <div className="mt-auto pb-8 pt-8">
+                {authMode === "register" ? (
+                  <Chunky disabled={!nome.trim() || !email.trim() || password.length < 8} onClick={() => go("objetivo")}>Continuar</Chunky>
+                ) : (
+                  <Chunky disabled={!email.trim() || password.length < 8 || apiStatus === "connecting"} onClick={entrarNaConta}>{apiStatus === "connecting" ? "Entrando..." : "Entrar"}</Chunky>
+                )}
+              </div>
             </div>
           )}
 
@@ -418,6 +499,7 @@ function App() {
               </div>
               {apiError && <p role="alert" className="mt-4 rounded-xl bg-coral-soft p-3 text-sm font-semibold text-ink">{apiError}</p>}
               <div className="mt-auto space-y-3 pb-8 pt-8">
+                <Chunky tone="milk" onClick={sairDaConta}>{authToken ? "Sair da conta" : "Limpar este dispositivo"}</Chunky>
                 <Chunky tone="milk" onClick={apagarPerfil}>Apagar perfil e progresso</Chunky>
                 <TabBar active={screen} go={go} />
               </div>

@@ -5,6 +5,8 @@ export const PROGRESS_STORAGE_KEY = "brainvest.progress.v1";
 export type UserProgress = {
   displayName: string;
   objective: string;
+  email: string;
+  authToken: string | null;
   backendLearnerId: string | null;
   xp: number;
   gems: number;
@@ -22,6 +24,8 @@ type ProgressStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 export const EMPTY_PROGRESS: UserProgress = {
   displayName: "",
   objective: "",
+  email: "",
+  authToken: null,
   backendLearnerId: null,
   xp: 0,
   gems: 0,
@@ -84,6 +88,8 @@ export function parseProgress(serialized: string | null): UserProgress {
     return {
       displayName: typeof parsed["displayName"] === "string" ? parsed["displayName"].slice(0, 60) : "",
       objective: typeof parsed["objective"] === "string" ? parsed["objective"].slice(0, 100) : "",
+      email: typeof parsed["email"] === "string" ? parsed["email"].slice(0, 254) : "",
+      authToken: typeof parsed["authToken"] === "string" ? parsed["authToken"] : null,
       backendLearnerId: typeof parsed["backendLearnerId"] === "string" ? parsed["backendLearnerId"] : null,
       xp: nonNegativeInteger(parsed["xp"], 0),
       gems: nonNegativeInteger(parsed["gems"], 0),

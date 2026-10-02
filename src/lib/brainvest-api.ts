@@ -40,6 +40,19 @@ export type ApiProgress = Omit<ApiLearner, "id"> & {
   rewardedQuestionIds: string[];
 };
 
+export type ApiUser = {
+  id: string;
+  email: string;
+  displayName: string;
+  learnerId: string;
+};
+
+export type ApiAuth = {
+  token: string;
+  user: ApiUser;
+  progress: ApiProgress;
+};
+
 export type ApiAnswer = {
   questionId: string;
   correct: boolean;
@@ -62,6 +75,12 @@ const configuredBaseUrl = (import.meta.env["VITE_API_BASE_URL"]?.trim() || defau
 
 export const isApiConfigured = true;
 
+let authToken: string | null = null;
+
+export function setApiAuthToken(token: string | null) {
+  authToken = token;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!configuredBaseUrl) throw new Error("VITE_API_BASE_URL is not configured.");
 
@@ -69,7 +88,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(`${configuredBaseUrl}${path}`, {
       ...init,
-      headers: { "Content-Type": "application/json", ...init?.headers },
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...init?.headers,
+      },
     });
   } catch {
     throw new Error("Não foi possível conectar à API. Verifique se o backend está em execução.");
@@ -93,6 +116,28 @@ export function createLearner(displayName: string, objective: string) {
     method: "POST",
     body: JSON.stringify({ displayName, objective }),
   });
+}
+
+export function registerAccount(displayName: string, objective: string, email: string, password: string) {
+  return request<ApiAuth>("/api/v1/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ displayName, objective, email, password }),
+  });
+}
+
+export function loginAccount(email: string, password: string) {
+  return request<ApiAuth>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function getCurrentAccount() {
+  return request<ApiAuth>("/api/v1/auth/me");
+}
+
+export function logoutAccount() {
+  return request<void>("/api/v1/auth/logout", { method: "POST" });
 }
 
 export function getLearnerProgress(learnerId: string) {
