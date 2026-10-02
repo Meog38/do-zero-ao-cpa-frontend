@@ -24,3 +24,17 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Backend API
+
+The frontend can run in local-only mode or connect to the Spring Boot API. For local development, create an untracked `.env.local` containing:
+
+```env
+VITE_API_BASE_URL=http://localhost:8082
+```
+
+The backend and PostgreSQL setup instructions are in the sibling `backend` repository. Restart the Vite dev server after changing environment variables.
+
+For a Lovable-hosted deployment, configure `VITE_API_BASE_URL` in the Lovable project's environment-variable settings with the public HTTPS URL of the deployed API. Do not use a `localhost` URL in the hosted frontend: it would point to the visitor's own computer. The API must also allow the exact Lovable app origin in `FRONTEND_ORIGINS`.
+
+The local `.env.local` file is ignored by Git. Never commit credentials or private database URLs into the frontend repository.
