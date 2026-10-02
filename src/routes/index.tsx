@@ -87,6 +87,21 @@ function Chunky({ onClick, tone = "mint", children, className = "", disabled }: 
   );
 }
 
+function buildMistakeCoach(question: LearningQuestion, selectedOptionId: string | null) {
+  const selectedOption = question.options.find((option) => option.id === selectedOptionId);
+  const correctOption = question.options.find((option) => option.id === question.correctOptionId);
+
+  return {
+    selectedText: selectedOption?.text ?? "Alternativa escolhida",
+    temptation:
+      "Essa alternativa pode parecer boa porque simplifica a decisao ou olha so para um detalhe chamativo.",
+    key:
+      `Conceito-chave: ${question.concept}. Compare a escolha com o objetivo, o prazo, o risco e a necessidade real do personagem.`,
+    hint:
+      `Microdica: procure a opcao que preserva melhor o plano do caso. Nesta pergunta, ela aponta para: ${correctOption?.text ?? "a alternativa correta"}.`,
+  };
+}
+
 function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [progress, setProgress] = useState<UserProgress>(EMPTY_PROGRESS);
@@ -697,6 +712,7 @@ function App() {
             const acertou = respostaCorreta ?? perguntaAtual.correctOptionId === resposta;
             const feedback = respostaApi?.feedback ?? (acertou ? perguntaAtual.correctFeedback : perguntaAtual.incorrectFeedback);
             const missaoConcluida = acertou && (respostaApi?.missionCompleted ?? questaoIndex === trilha.questions.length - 1);
+            const mistakeCoach = buildMistakeCoach(perguntaAtual, resposta);
             return (
               <div className="flex flex-1 flex-col px-6 pt-10">
                 <img src={mascot} alt="" width={816} height={816} className={`mx-auto size-28 ${acertou ? "" : "grayscale-[40%]"}`} />
@@ -715,6 +731,15 @@ function App() {
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-bark">Conceito-chave · {perguntaAtual.concept}</p>
                   <p className="mt-1 text-sm leading-relaxed text-ink">{feedback}</p>
                 </div>
+                {!acertou && (
+                  <div className="mt-3 rounded-2xl border-2 border-coral/40 bg-coral-soft p-4">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-bark">Por que parecia tentador</p>
+                    <p className="mt-1 text-sm leading-relaxed text-ink">Voce escolheu: {mistakeCoach.selectedText}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink">{mistakeCoach.temptation}</p>
+                    <p className="mt-2 text-sm font-bold leading-relaxed text-ink">{mistakeCoach.key}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink">{mistakeCoach.hint}</p>
+                  </div>
+                )}
                 {acertou && missaoConcluida && (
                   <div className="mt-3 space-y-3">
                     <div className="rounded-2xl border-2 border-line bg-milk p-4">
