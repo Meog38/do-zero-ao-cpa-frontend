@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Brainvest — Educação financeira gamificada" },
+      { title: "Do Zero ao CPA — Educação financeira gamificada" },
       { name: "description", content: "Aprenda a usar o cartão, organizar o dinheiro e investir jogando." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Brainvest — Educação financeira gamificada" },
+      { property: "og:title", content: "Do Zero ao CPA — Educação financeira gamificada" },
       { property: "og:description", content: "Aprenda a usar o cartão, organizar o dinheiro e investir jogando." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
