@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import mascot from "@/assets/mascot.png";
 import { LEARNING_LEVELS, STARTER_HEARTS, type LearningLevel, type LearningQuestion } from "@/lib/learning-content";
 import { clearProgress, EMPTY_PROGRESS, getMissionGemReward, getQuestionXpReward, readProgress, writeProgress, type UserProgress } from "@/lib/user-progress";
-import { changeAccountPassword, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
+import { changeAccountPassword, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, requestPasswordReset, resetAccountPassword, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -109,8 +109,10 @@ function App() {
   const [learningLevels, setLearningLevels] = useState<LearningLevel[]>(LEARNING_LEVELS);
   const [apiStatus, setApiStatus] = useState<"local" | "connecting" | "online" | "offline">(isApiConfigured ? "connecting" : "local");
   const [apiError, setApiError] = useState("");
-  const [authMode, setAuthMode] = useState<"register" | "login">("register");
+  const [authMode, setAuthMode] = useState<"register" | "login" | "forgot" | "reset">("register");
   const [password, setPassword] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [accountMessage, setAccountMessage] = useState("");
@@ -239,6 +241,41 @@ function App() {
     } catch (error) {
       setApiStatus("offline");
       setApiError(error instanceof Error ? error.message : "Não foi possível entrar na conta.");
+    }
+  };
+
+  const solicitarResetSenha = async () => {
+    if (!email.trim()) return;
+    setApiStatus("connecting");
+    setApiError("");
+    setAccountMessage("");
+    try {
+      await requestPasswordReset(email.trim());
+      setAccountMessage("Se este e-mail estiver cadastrado, enviaremos instrucoes de recuperacao.");
+      setApiStatus("online");
+      setAuthMode("reset");
+    } catch (error) {
+      setApiStatus("offline");
+      setApiError(error instanceof Error ? error.message : "Nao foi possivel solicitar a recuperacao.");
+    }
+  };
+
+  const redefinirSenha = async () => {
+    if (!resetToken.trim() || resetPassword.length < 8) return;
+    setApiStatus("connecting");
+    setApiError("");
+    setAccountMessage("");
+    try {
+      await resetAccountPassword(resetToken.trim(), resetPassword);
+      setResetToken("");
+      setResetPassword("");
+      setPassword("");
+      setAccountMessage("Senha redefinida. Entre com a nova senha.");
+      setApiStatus("online");
+      setAuthMode("login");
+    } catch (error) {
+      setApiStatus("online");
+      setApiError(error instanceof Error ? error.message : "Nao foi possivel redefinir a senha.");
     }
   };
 
@@ -451,11 +488,11 @@ function App() {
           {screen === "auth" && (
             <div className="flex flex-1 flex-col px-7 pt-10">
               <button onClick={() => go("splash")} className="self-start text-2xl text-bark">←</button>
-              <h2 className="mt-6 font-display text-3xl font-bold text-ink">{authMode === "register" ? "Crie sua conta" : "Entre na sua conta"}</h2>
+              <h2 className="mt-6 font-display text-3xl font-bold text-ink">{authMode === "register" ? "Crie sua conta" : authMode === "login" ? "Entre na sua conta" : "Recupere sua senha"}</h2>
               <p className="mt-1 text-sm text-bark">Seu progresso será salvo no banco e acompanha você em outros dispositivos.</p>
               <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-cream p-1">
-                <button onClick={() => setAuthMode("register")} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "register" ? "bg-mint text-milk" : "text-bark"}`}>Cadastrar</button>
-                <button onClick={() => setAuthMode("login")} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "login" ? "bg-mint text-milk" : "text-bark"}`}>Entrar</button>
+                <button onClick={() => { setAuthMode("register"); setApiError(""); setAccountMessage(""); }} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "register" ? "bg-mint text-milk" : "text-bark"}`}>Cadastrar</button>
+                <button onClick={() => { setAuthMode("login"); setApiError(""); setAccountMessage(""); }} className={`rounded-xl py-2 text-xs font-extrabold uppercase ${authMode === "login" ? "bg-mint text-milk" : "text-bark"}`}>Entrar</button>
               </div>
               <div className="mt-8 space-y-3">
                 {authMode === "register" && (
@@ -466,17 +503,37 @@ function App() {
                 <input aria-label="E-mail" autoComplete="email" inputMode="email" maxLength={254} placeholder="E-mail" value={email}
                   onChange={(event) => setProgress((current) => ({ ...current, email: event.target.value }))}
                   className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                {(authMode === "register" || authMode === "login") && (
                 <input aria-label="Senha" autoComplete={authMode === "register" ? "new-password" : "current-password"} minLength={8} maxLength={100} type="password" placeholder="Senha, mínimo 8 caracteres" value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                )}
+                {authMode === "reset" && (
+                  <>
+                    <input aria-label="Codigo de recuperacao" autoComplete="one-time-code" maxLength={200} placeholder="Codigo ou token de recuperacao" value={resetToken}
+                      onChange={(event) => setResetToken(event.target.value)}
+                      className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                    <input aria-label="Nova senha" autoComplete="new-password" minLength={8} maxLength={100} type="password" placeholder="Nova senha, minimo 8 caracteres" value={resetPassword}
+                      onChange={(event) => setResetPassword(event.target.value)}
+                      className="w-full rounded-2xl border-2 border-line bg-cream px-4 py-3.5 font-semibold text-ink outline-none placeholder:text-bark/50 focus:border-mint" />
+                  </>
+                )}
+                {accountMessage && <p role="status" className="rounded-xl bg-mint-soft p-3 text-sm font-semibold text-ink">{accountMessage}</p>}
                 {apiError && <p role="alert" className="rounded-xl bg-coral-soft p-3 text-sm font-semibold text-ink">{apiError}</p>}
               </div>
-              <div className="mt-auto pb-8 pt-8">
+              <div className="mt-auto space-y-3 pb-8 pt-8">
                 {authMode === "register" ? (
                   <Chunky disabled={!nome.trim() || !email.trim() || password.length < 8} onClick={() => go("objetivo")}>Continuar</Chunky>
-                ) : (
+                ) : authMode === "login" ? (
                   <Chunky disabled={!email.trim() || password.length < 8 || apiStatus === "connecting"} onClick={entrarNaConta}>{apiStatus === "connecting" ? "Entrando..." : "Entrar"}</Chunky>
+                ) : authMode === "forgot" ? (
+                  <Chunky disabled={!email.trim() || apiStatus === "connecting"} onClick={solicitarResetSenha}>{apiStatus === "connecting" ? "Enviando..." : "Enviar instrucao"}</Chunky>
+                ) : (
+                  <Chunky disabled={!resetToken.trim() || resetPassword.length < 8 || apiStatus === "connecting"} onClick={redefinirSenha}>{apiStatus === "connecting" ? "Salvando..." : "Redefinir senha"}</Chunky>
                 )}
+                {authMode === "login" && <button onClick={() => { setAuthMode("forgot"); setApiError(""); setAccountMessage(""); }} className="w-full text-sm font-extrabold text-mint underline underline-offset-4">Esqueci minha senha</button>}
+                {(authMode === "forgot" || authMode === "reset") && <button onClick={() => { setAuthMode("login"); setApiError(""); }} className="w-full text-sm font-extrabold text-bark underline underline-offset-4">Voltar para entrar</button>}
+                {authMode === "forgot" && <button onClick={() => setAuthMode("reset")} className="w-full text-sm font-extrabold text-bark underline underline-offset-4">Ja tenho um codigo</button>}
               </div>
             </div>
           )}
@@ -511,7 +568,7 @@ function App() {
               <div className="mt-3 rounded-2xl border-2 border-line bg-milk p-4">
                 <p className="text-xs font-extrabold uppercase tracking-wider text-bark">Status</p>
                 <p className="mt-1 text-sm font-bold text-ink">{syncLabel}</p>
-                {authToken && <p className="mt-2 text-xs leading-relaxed text-bark">Se esquecer a senha, peca ao responsavel tecnico para fazer o reset manual no banco. O app ainda nao envia e-mail automatico.</p>}
+                {authToken && <p className="mt-2 text-xs leading-relaxed text-bark">Se esquecer a senha, use a opcao de recuperacao na tela de entrada.</p>}
               </div>
               <label className="mt-8 text-xs font-extrabold uppercase tracking-wider text-bark" htmlFor="profile-name">Como quer ser chamado?</label>
               <input id="profile-name" maxLength={60} value={nome} onBlur={() => {

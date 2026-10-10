@@ -148,6 +148,20 @@ export function changeAccountPassword(currentPassword: string, newPassword: stri
   });
 }
 
+export function requestPasswordReset(email: string) {
+  return request<void>("/api/v1/auth/password/forgot", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetAccountPassword(token: string, newPassword: string) {
+  return request<void>("/api/v1/auth/password/reset", {
+    method: "POST",
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
 export function getLearnerProgress(learnerId: string) {
   return request<ApiProgress>(`/api/v1/learners/${encodeURIComponent(learnerId)}/progress`);
 }
