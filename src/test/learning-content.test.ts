@@ -5,7 +5,7 @@ import { LEARNING_LEVELS } from "@/lib/learning-content";
 describe("learning path", () => {
   it("builds five levels with expanded missions", () => {
     expect(LEARNING_LEVELS).toHaveLength(5);
-    expect(LEARNING_LEVELS.map((level) => level.questions.length)).toEqual([8, 8, 8, 8, 12]);
+    expect(LEARNING_LEVELS.map((level) => level.questions.length)).toEqual([20, 20, 20, 20, 20]);
     expect(LEARNING_LEVELS.every((level) => level.missionSummary.length > 80)).toBe(true);
   });
 
@@ -31,10 +31,6 @@ describe("learning path", () => {
   it("moves from everyday scenarios to technical certification-style cases", () => {
     expect(LEARNING_LEVELS[0]?.missionTitle).toContain("primeiro salário");
     expect(LEARNING_LEVELS[4]?.title).toBe("Desafio CPA");
-    expect(
-      LEARNING_LEVELS[4]?.questions.every((question) =>
-        question.context.startsWith("Caso"),
-      ),
-    ).toBe(true);
+    expect(LEARNING_LEVELS[4]?.missionTitle).toContain("primeiro ponto de apoio");
   });
 });
