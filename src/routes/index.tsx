@@ -519,7 +519,7 @@ function App() {
           {screen === "perfil" && (
             <div className="flex flex-1 flex-col px-6 pt-8">
               <div className="flex items-center gap-4">
-                <img src={mascot} alt="Mascote atual da Brainvest" width={816} height={816} className="size-20" />
+                <img src={mascot} alt="Tucano Brainvest" width={1024} height={1024} className="size-20" />
                 <div><h2 className="font-display text-2xl font-bold text-ink">Seu perfil</h2><p className="text-xs text-bark">{authToken ? "Progresso salvo na sua conta" : "Progresso local ainda sem conta"}</p></div>
               </div>
               {email && <div className="mt-5 rounded-2xl border-2 border-line bg-cream p-4"><p className="text-xs font-extrabold uppercase tracking-wider text-bark">E-mail</p><p className="mt-1 break-words text-sm font-bold text-ink">{email}</p></div>}
