@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import mascot from "@/assets/mascot.png";
 import { LEARNING_LEVELS, STARTER_HEARTS, type LearningLevel, type LearningQuestion } from "@/lib/learning-content";
 import { clearProgress, EMPTY_PROGRESS, getMissionGemReward, getQuestionXpReward, readProgress, writeProgress, type UserProgress } from "@/lib/user-progress";
-import { changeAccountPassword, createLearner, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
+import { changeAccountPassword, deleteLearnerProfile, getCurrentAccount, getCurriculum, getLearnerProgress, isApiConfigured, loginAccount, logoutAccount, registerAccount, restartLearnerMission, setApiAuthToken, submitLearnerAnswer, updateLearnerProfile, type ApiAnswer, type ApiAuth, type ApiCurriculum, type ApiProgress } from "@/lib/brainvest-api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -150,19 +150,7 @@ function App() {
           setApiStatus("online");
           return;
         }
-        if (!saved.displayName.trim() || !saved.objective.trim()) {
-          setApiStatus("online");
-          return;
-        }
-
-        let learnerId = saved.backendLearnerId;
-        if (!learnerId) {
-          learnerId = (await createLearner(saved.displayName, saved.objective)).id;
-          setProgress((current) => ({ ...current, backendLearnerId: learnerId }));
-        }
-        const learner = await getLearnerProgress(learnerId);
-        if (cancelled) return;
-        setProgress((current) => mergeApiProgress(learner, current));
+        setProgress((current) => current.authToken ? current : { ...current, backendLearnerId: null });
         setApiStatus("online");
       } catch (error) {
         if (cancelled) return;
@@ -222,11 +210,8 @@ function App() {
           setPassword("");
           go("home");
           return;
-        } else if (learnerId) {
-          await updateLearnerProfile(learnerId, nome.trim(), objetivo);
         } else {
-          learnerId = (await createLearner(nome.trim(), objetivo)).id;
-          setProgress((current) => ({ ...current, backendLearnerId: learnerId }));
+          throw new Error("Entre novamente para sincronizar seu perfil.");
         }
         const serverProgress = await getLearnerProgress(learnerId);
         setProgress((current) => mergeApiProgress(serverProgress, current));
@@ -259,7 +244,7 @@ function App() {
 
   const selecionarObjetivo = (label: string) => {
     setProgress((current) => ({ ...current, objective: label }));
-    if (apiStatus === "online" && backendLearnerId && nome.trim()) {
+    if (apiStatus === "online" && authToken && backendLearnerId && nome.trim()) {
       void updateLearnerProfile(backendLearnerId, nome.trim(), label).catch((error: unknown) => {
         setApiStatus("offline");
         setApiError(error instanceof Error ? error.message : "Não foi possível sincronizar o objetivo.");
@@ -269,7 +254,7 @@ function App() {
 
   const enviarResposta = async () => {
     if (!resposta || submitting) return;
-    if (backendLearnerId && apiStatus !== "online") {
+    if (authToken && backendLearnerId && apiStatus !== "online") {
       setApiError("Seu perfil está no backend, mas a API está indisponível. Reconecte para enviar a resposta sem perder progresso.");
       return;
     }
@@ -282,7 +267,7 @@ function App() {
     const xpGanho = getQuestionXpReward(acertou, questaoJaRecompensada, missaoJaConcluida);
     const gemasGanhos = acertou && ultimaDaMissao ? getMissionGemReward(missaoJaConcluida) : 0;
 
-    if (apiStatus === "online" && backendLearnerId) {
+    if (apiStatus === "online" && authToken && backendLearnerId) {
       const requestId = pendingRequestId ?? crypto.randomUUID();
       setPendingRequestId(requestId);
       try {
@@ -335,7 +320,7 @@ function App() {
     const acertou = respostaCorreta ?? perguntaAtual?.correctOptionId === resposta;
     if (!acertou) {
       if (vidas === 0) {
-        if (apiStatus === "online" && backendLearnerId) {
+        if (apiStatus === "online" && authToken && backendLearnerId) {
           try {
             await restartLearnerMission(backendLearnerId, trilha.id);
             const serverProgress = await getLearnerProgress(backendLearnerId);
@@ -394,7 +379,7 @@ function App() {
   const apagarPerfil = async () => {
     const confirmation = window.prompt("Para apagar sua conta e todo o progresso salvo, digite APAGAR.");
     if (confirmation !== "APAGAR") return;
-    if (backendLearnerId) {
+    if (authToken && backendLearnerId) {
       try {
         await deleteLearnerProfile(backendLearnerId);
       } catch (error) {
@@ -530,7 +515,7 @@ function App() {
               </div>
               <label className="mt-8 text-xs font-extrabold uppercase tracking-wider text-bark" htmlFor="profile-name">Como quer ser chamado?</label>
               <input id="profile-name" maxLength={60} value={nome} onBlur={() => {
-                if (apiStatus === "online" && backendLearnerId && objetivo) {
+                if (apiStatus === "online" && authToken && backendLearnerId && objetivo) {
                   void updateLearnerProfile(backendLearnerId, nome.trim(), objetivo).catch((error: unknown) => {
                     setApiStatus("offline");
                     setApiError(error instanceof Error ? error.message : "Não foi possível sincronizar o perfil.");
