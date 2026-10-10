@@ -25,7 +25,7 @@ describe("App routing", () => {
   it("renders the index route", async () => {
     await renderAt("/");
 
-    expect(await screen.findByRole("heading", { name: /brainvest/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /do zero ao cpa/i })).toBeInTheDocument();
   });
 
   it("renders the not-found route", async () => {

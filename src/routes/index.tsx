@@ -8,9 +8,9 @@ import { changeAccountPassword, createLearner, deleteLearnerProfile, getCurrentA
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Brainvest — Aprenda finanças jogando" },
+      { title: "Do Zero ao CPA — Aprenda finanças jogando" },
       { name: "description", content: "Domine seu cartão, organize seu dinheiro e comece a investir com desafios curtos e interativos." },
-      { property: "og:title", content: "Brainvest — Aprenda finanças jogando" },
+      { property: "og:title", content: "Do Zero ao CPA — Aprenda finanças jogando" },
       { property: "og:description", content: "Educação financeira gamificada para jovens estudantes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -453,8 +453,8 @@ function App() {
         <div key={screen} className="animate-pop flex flex-1 flex-col">
           {screen === "splash" && (
             <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 px-5 text-center sm:px-8">
-              <img src={mascot} alt="Tucano Brainvest" width={1024} height={1024} className="size-40 max-w-full object-contain sm:size-48" />
-              <h1 className="max-w-full break-words font-display text-4xl font-bold text-mint sm:text-5xl">brainvest</h1>
+              <img src={mascot} alt="Tucano Do Zero ao CPA" width={1024} height={1024} className="size-40 max-w-full object-contain sm:size-48" />
+              <h1 className="max-w-full break-words font-display text-3xl font-bold leading-tight text-mint sm:text-4xl">Do Zero ao CPA</h1>
               <p className="max-w-[28ch] text-bark">Do seu primeiro salário aos conceitos de investimento da CPA.</p>
               <div className="mt-6 w-full min-w-0 space-y-3">
                 <Chunky onClick={() => go("auth")}>Começar agora</Chunky>
@@ -519,7 +519,7 @@ function App() {
           {screen === "perfil" && (
             <div className="flex flex-1 flex-col px-6 pt-8">
               <div className="flex items-center gap-4">
-                <img src={mascot} alt="Tucano Brainvest" width={1024} height={1024} className="size-20" />
+                <img src={mascot} alt="Tucano Do Zero ao CPA" width={1024} height={1024} className="size-20" />
                 <div><h2 className="font-display text-2xl font-bold text-ink">Seu perfil</h2><p className="text-xs text-bark">{authToken ? "Progresso salvo na sua conta" : "Progresso local ainda sem conta"}</p></div>
               </div>
               {email && <div className="mt-5 rounded-2xl border-2 border-line bg-cream p-4"><p className="text-xs font-extrabold uppercase tracking-wider text-bark">E-mail</p><p className="mt-1 break-words text-sm font-bold text-ink">{email}</p></div>}

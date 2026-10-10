@@ -1,4 +1,4 @@
-# Brainvest - Situacao Atual e Roadmap
+# Do Zero ao CPA - Situacao Atual e Roadmap
 
 ## 1. Ideia Original Do Projeto
 
@@ -22,7 +22,7 @@ Argumento central do projeto:
 
 ### Produto/Frontend
 
-- Nome atual: Brainvest.
+- Nome atual: Do Zero ao CPA (antes: Brainvest).
 - Aplicacao gamificada com visual proprio, mascote, trilha, missoes e progresso.
 - Fluxo de cadastro e login com email/senha.
 - Tela de objetivo do usuario.
