@@ -453,7 +453,7 @@ function App() {
         <div key={screen} className="animate-pop flex flex-1 flex-col">
           {screen === "splash" && (
             <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 px-5 text-center sm:px-8">
-              <img src={mascot} alt="Coruja Brainvest" width={816} height={816} className="size-40 max-w-full object-contain sm:size-48" />
+              <img src={mascot} alt="Tucano Brainvest" width={1024} height={1024} className="size-40 max-w-full object-contain sm:size-48" />
               <h1 className="max-w-full break-words font-display text-4xl font-bold text-mint sm:text-5xl">brainvest</h1>
               <p className="max-w-[28ch] text-bark">Do seu primeiro salário aos conceitos de investimento da CPA.</p>
               <div className="mt-6 w-full min-w-0 space-y-3">
