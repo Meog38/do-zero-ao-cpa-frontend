@@ -165,6 +165,14 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("token");
+    if (!token) return;
+    setResetToken(token);
+    setAuthMode("reset");
+    setScreen("auth");
+  }, []);
+
+  useEffect(() => {
     if (progressLoaded) writeProgress(window.localStorage, progress);
   }, [progress, progressLoaded]);
 
