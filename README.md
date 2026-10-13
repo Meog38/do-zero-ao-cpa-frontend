@@ -1,40 +1,80 @@
-# Pixel Perfect Snapshot
+# Do Zero ao CPA - Frontend
 
-Implement exactly the screenshot and nothing else
+Frontend do aplicativo educacional gamificado **Do Zero ao CPA**.
 
-This project was built with [Lovable](https://lovable.dev).
+- App em producao: https://do-zero-ao-cpa.vercel.app/
+- Repositorio hub: https://github.com/Meog38/do-zero-ao-cpa
+- Backend: https://github.com/Meog38/do-zero-ao-cpa-backend
+- API publica: https://brainvest-api.onrender.com
 
-**Live app**: https://pixel-perfect-snap-5512.lovable.app
+## Sobre
 
-## Build with Lovable
+O app ajuda jovens estudantes a praticar organizacao financeira, uso responsavel do cartao de credito e conceitos iniciais de investimentos. A experiencia usa missoes, questoes contextualizadas, feedback imediato, XP, vidas, gemas e progresso.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/78f36854-c9e1-43e8-a9be-968c5d4da775).
+Este projeto foi iniciado no Lovable e segue conectado ao fluxo de sincronizacao via Git.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Stack
 
-## Development
+- React 19
+- TypeScript
+- TanStack Router e TanStack Start
+- Vite
+- Tailwind CSS 4
+- Radix UI
+- Vitest e Testing Library
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Rodar localmente
+
+Requisitos: Node.js e npm.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
 npm run dev
 ```
 
-## Backend API
+Por padrao, o frontend usa a API publicada em:
 
-The frontend can run in local-only mode or connect to the Spring Boot API. For local development, create an untracked `.env.local` containing:
+```text
+https://brainvest-api.onrender.com
+```
+
+Para usar uma API local, crie um arquivo `.env.local` nao versionado:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8082
 ```
 
-The backend and PostgreSQL setup instructions are in the sibling `backend` repository. Restart the Vite dev server after changing environment variables.
+Depois reinicie o servidor Vite.
 
-For a Lovable-hosted deployment, configure `VITE_API_BASE_URL` in the Lovable project's environment-variable settings with the public HTTPS URL of the deployed API. Do not use a `localhost` URL in the hosted frontend: it would point to the visitor's own computer. The API must also allow the exact Lovable app origin in `FRONTEND_ORIGINS`.
+## Scripts
 
-The local `.env.local` file is ignored by Git. Never commit credentials or private database URLs into the frontend repository.
+```sh
+npm run dev       # servidor de desenvolvimento
+npm run build     # build de producao
+npm run preview   # preview local do build
+npm run test      # testes automatizados
+npm run lint      # lint
+```
+
+## Estrutura principal
+
+- `src/routes/index.tsx`: fluxo principal do app e telas.
+- `src/lib/learning-content.ts`: conteudo local de fallback das trilhas.
+- `src/lib/brainvest-api.ts`: cliente REST do backend.
+- `src/lib/user-progress.ts`: progresso local no navegador.
+- `src/components/ui`: componentes de UI baseados em Radix.
+- `src/assets/mascot.png`: mascote usado na interface.
+
+## Deploy
+
+O deploy principal do frontend esta na Vercel:
+
+```text
+https://do-zero-ao-cpa.vercel.app/
+```
+
+Tambem existe historico do projeto no Lovable. Se o ambiente Lovable for usado, confirme se `VITE_API_BASE_URL` aponta para a API publica e se o backend permite a origem correta no CORS.
+
+## Observacoes
+
+O frontend mantem progresso local quando o usuario nao esta logado. Para contas autenticadas, o progresso e sincronizado com o backend. O projeto tem finalidade educacional e nao faz recomendacao individual de investimentos.
